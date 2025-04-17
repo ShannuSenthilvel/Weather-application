@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+</head>
+<style>
+    body {
+    margin: 0;
+    overflow: auto;
+    --animation-speed: 24s;
+    transition: background 1s ease-in-out;
+    font-family: sans-serif;
+}
+
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.morning-gradient {
+    background: linear-gradient(to bottom, #ADD8E6, #94d9f0, #FFFACD);
+}
+
+.background.night-gradient {
+    background: linear-gradient(to bottom, #270138, #000080, #191970, #0e0e5c, #060620);
+    color: white;
+}
+
+#sun-moon-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.sun {
+    position: absolute;
+    background: #FFCD41;
+    border-radius: 50%;
+    box-shadow: rgba(255, 255, 0, 0.1) 0 0 0 4px;
+    animation: light 800ms ease-in-out infinite alternate, weather-icon-move 5s ease-in-out infinite;
+    width: 50px;
+    height: 50px;
+    top: 10%;
+    right: 10%;
+}
+
+@keyframes light {
+    from {
+        box-shadow: rgba(255, 255, 0, 0.2) 0 0 0 10px;
+    }
+    to {
+        box-shadow: rgba(255, 255, 0, 0.2) 0 0 0 17px;
+    }
+}
+
+.moon {
+    position: absolute;
+    top: 15%;
+    left: 10%;
+    width: 60px;
+    height: 60px;
+    background-color: linear-gradient(lightgray, rgb(233, 229, 229), rgb(245, 245, 163));
+    border-radius: 50%;
+    box-shadow: 0 0 20px white;
+}
+
+.star {
+    position: absolute;
+    background-color: white;
+    border-radius: 50%;
+    opacity: 0.7;
+}
+
+.hidden {
+    display: none !important;
+}
+/*---------------------------------------------------Creating a grid layout to get a organized structure for the web application------------------------------------------------------*/
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+        "current-weather search"
+        "sky-animation recent"
+        "wind forecast";
+    gap: 20px;
+    padding: 30px;
+    box-sizing: border-box;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+#current-weather {
+    grid-area: current-weather;
+}
+
+.search-container {
+    grid-area: search;
+}
+
+#recent-searches-container {
+    grid-area: recent;
+}
+
+#sky-animation-container {
+    grid-area: sky-animation;
+}
+
+.wind-speed-container {
+    grid-area: wind;
+}
+
+#extended-forecast {
+    grid-area: forecast;
+}
+
+/*-----------------------------------------------------Weather forecast title styling--------------------------------------------*/
+
+.weather-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #f8f9fa;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/*----------------------------------------------------------Search container styling------------------------------------------------*/
+
+.search-container {
+ 
+    border-radius: 0.375rem; 
+    padding: 16px; 
+    margin-bottom: 16px; 
+    display: flex; 
+    align-items: center; 
+}
+
+.city-input {
+    flex-grow: 1;
+    padding: 8px; 
+    border: 1px solid #d1d5db; 
+    border-radius: 0.375rem; 
+    outline: none;
+}
+
+.city-input:focus {
+    border-color: #3b82f6; 
+}
+
+.search-button,
+.location-button {
+    background-color: #3b82f6; 
+    color: #fff; 
+    font-weight: 700; 
+    padding: 8px 16px; 
+    border-radius: 0.375rem;
+    margin-left: 8px; 
+    outline: none; 
+    cursor: pointer;
+    border: none;
+}
+
+.search-button:hover {
+    background-color: #2563eb; 
+}
+
+.location-button {
+    background-color: #16a34a; 
+}
+
+.location-button:hover {
+    background-color: #15803d; 
+}
+
+.recent-searches-container {
+   
+    border-radius: 0.375rem; 
+   
+    padding: 16px; 
+    margin-bottom: 16px; 
+}
+
+.recent-searches-label {
+    display: block; 
+    color: #4a5568; 
+    font-size: 0.875rem; 
+    font-weight: 700; 
+    margin-bottom: 8px;
+}
+
+.recent-cities-select {
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05); 
+    border-radius: 0.25rem; 
+    border: 1px solid #e2e8f0; 
+    width: 100%; 
+    padding: 8px; 
+    color: #4a5568; 
+    line-height: 1.5; 
+    outline: none; 
+}
+
+.recent-cities-select:focus {
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); 
+}
+
+/*-------------------------------------------------Weather elements styling---------------------------------------------------------*/
+.current-weather {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    text-align: center;
+    padding: 20px;
+    color: white;
+    width: 600px;
+    height: 300px;
+}
+
+.current-weather-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.weather-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+}
+
+#weather-icon img{
+    width: 50px;
+    height: 50px;
+}
+
+.temperature {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2563eb;
+    margin-bottom: 5px;
+}
+
+.description {
+    color: #ddd;
+    margin-bottom: 5px;
+    font-style: italic;
+}
+
+.humidity,
+#wind-speed-display {
+    color: white;
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.extended-forecast {
+    background-color: #fff;
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    padding: 15px;
+}
+
+.forecast-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #374151;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.forecast-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+}
+
+.forecast-item {
+    text-align: center;
+    padding: 10px;
+    border-radius: 0.25rem;
+    background-color: #f7f7f7;
+}
+
+.forecast-item h3 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+    color: #4a5568;
+}
+
+.forecast-item .weather-icon img {
+    max-width: 50px;
+    height: auto;
+}
+
+.forecast-item .temperature {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2563eb;
+    margin-top: 5px;
+}
+
+.error-message {
+    color: #ef4444;
+    margin-top: 15px;
+    display: none;
+    text-align: center;
+}
+
+.error-message.show {
+    display: block;
+}
+
+#wind-speed-display {
+
+text-align: center;
+
+margin-top: 10px;
+
+}
+
+
+/*----------------------------------------------------------Wind turbine styling---------------------------------------------------*/
+
+.turbine {
+
+display: flex;
+
+flex-direction: column;
+
+align-items: center;
+
+justify-content: flex-end;
+
+height: 200px;
+
+width: 50px;
+
+}
+
+
+
+.smaller-turbine {
+
+transform: scale(0.7);
+
+}
+
+
+
+.pole {
+
+background-color: rgb(241, 237, 237);
+
+width: 10px;
+
+height: 100px;
+
+border-radius: 5px 5px 0 0;
+ align-self: center;
+
+}
+
+.pilot {
+    position: relative;
+    top: -8px;
+    z-index: 1;
+}
+
+.pilot:after { 
+content: '';
+display: block;
+position: absolute;
+top: 40px;
+left: -6px;
+z-index: 1;
+height: 27px;
+width: 27px;
+border: 3px solid darkgrey;
+border-radius: 50%;
+box-sizing: border-box;
+}
+
+
+.pilot {
+
+position: relative;
+
+top: -10px;
+
+z-index: 1;
+
+}
+
+
+
+.pilot:after,
+
+.pilot .prop {
+
+background-color: #ffffff;
+
+}
+
+/*Animation to control the wind turbine rotation*/
+
+@keyframes rotateProp {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+
+.pilot .prop-container {
+ display: grid;
+
+grid-template-columns: repeat(1, 1fr);
+
+align-items: center;
+
+justify-items: center;
+
+animation: rotateProp 3s infinite linear;
+
+transform-origin: 7px 53px;
+
+}
+
+
+
+.pilot .prop {
+
+height: 50px;
+
+width: 14px;
+
+border-radius: 50%;
+
+grid-column: 1;
+
+grid-row: 1;
+
+ transform-origin: 50% 50%;
+
+}
+
+
+
+.prop:first-child {
+
+transform: rotate(360deg) translate(0px) rotate(-360deg);
+
+}
+
+
+
+.prop:nth-child(2) {
+
+transform: rotateZ(120deg) rotate(120deg) translate(-50px) rotate(-120deg);
+
+}
+
+
+
+.prop:last-child {
+
+transform: rotateZ(240deg) rotate(240deg) translate(50px) rotate(-240deg);
+
+}
+
+
+
+.wind-speed-container {
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    padding: 20px;
+    color: white;
+    text-align: center;
+}
+
+.wind-speed-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.wind-speed {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 15px;
+}
+
+
+/*-----------------------------------------------------Sunrise and Sunset elements styling--------------------------------------------------*/
+.sunrise-sunset-text {
+    color: white;
+    font-size: 1.0rem;
+    margin-top: 5px;
+    text-align: center;
+}
+
+#sky-animation-container {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0,0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    padding: 24px;
+    color: white;
+   position: relative;
+    overflow: hidden;
+}
+
+.sky {
+    position: relative;
+    width: 100%;
+    height: 500px; 
+    overflow: hidden;
+    border-radius: 0.25rem;
+}
+
+.sky__phase {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    transition: opacity 0.2s;
+}
+
+.sky__dawn {
+    background: linear-gradient(0deg, rgba(254, 215, 102, 1) 0%, rgba(205, 237, 246, 1) 100%);
+    animation: linear dawn infinite var(--animation-speed);
+}
+
+.sky__noon {
+    background: linear-gradient(0deg, rgba(205, 237, 246, 1) 0%, rgba(36, 123, 160, 1) 100%);
+    animation: linear noon infinite var(--animation-speed);
+}
+
+.sky__dusk {
+    background: linear-gradient(0deg, rgba(255, 32, 110, 1) 0%, rgba(10, 0, 94, 1) 100%);
+    animation: linear dusk infinite var(--animation-speed);
+}
+
+.sky__midnight {
+    background: linear-gradient(0deg, rgba(2, 0, 20, 1) 0%, rgba(10, 0, 94, 1) 100%);
+    animation: linear midnight infinite var(--animation-speed);
+}
+
+.orbit {
+    position: absolute;
+    width: 480px; 
+    height: 350px; 
+    top:50%;
+    left: 10px;
+    transform: rotate(-45deg);
+    animation: linear sunrise infinite var(--animation-speed);
+}
+
+.sunrise_sun {
+    position: absolute;
+    top: -40px; 
+    left: 0;
+    width: 40px; 
+    height: 40px; 
+    background-color: rgb(254, 215, 102);
+    border-radius: 50%;
+    box-shadow: 0 0 7px 7px rgba(254, 215, 102, 0.2);
+}
+
+ .moonrise_moon {
+    position: absolute;
+    bottom: 0px;
+    left: 50%;
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%;
+    background-color: #fff;
+    box-shadow: 0 0 3px 3px rgba(255, 255, 255, 0.2);
+} 
+
+#sky__stars {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+
+    #sky__stars > div {
+        width: 2px;
+        height: 2px;
+        background-color: white;
+        border-radius: 50%;
+        position: absolute;
+    }
+
+/*Sunrise and Sunset container animation*/
+
+@keyframes sunrise {
+    from {
+        transform:rotate(-45deg);
+    }
+    to {
+        transform:rotate(315deg);
+    }
+}
+
+@keyframes dawn {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    60% { opacity: 0; }
+}
+
+@keyframes noon {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    75% { opacity: 0; }
+}
+
+@keyframes dusk {
+    0% { opacity: 0; }
+    50% { opacity: 0; }
+    70% { opacity: 1; }
+    90% { opacity: 0; }
+}
+
+@keyframes midnight {
+    0% { opacity: 1; }
+    25% { opacity: 0; }
+    50% { opacity: 0; }
+    80% { opacity: 1; }
+}
+</style>
+<body>
+    <h1 class="weather-title">Weather Forecast</h1>
+    <div class="container">
+<!------------------------------------------------Serach container----------------------------------------------------->
+        <div class="search-container">
+            <input type="text" id="city-input" placeholder="Enter city name" class="city-input">
+            <button id="search-button" class="search-button">Search</button>
+            <button id="location-button" class="location-button">My Location</button>
+        </div>
+<!------------------------------------------------Recent searches dropdown-------------------------------------------------------->
+        <div id="recent-searches-container" class="recent-searches-container" style="display:none;">
+            <label for="recent-cities" class="recent-searches-label">Recently Searched:</label>
+            <select id="recent-cities" class="recent-cities-select">
+                </select>
+        </div>
+<!------------------------------------------------Current weather container----------------------------------------------------->
+        <div id="current-weather" class="current-weather">
+            <h2 class="current-weather-title">Current Weather</h2>
+            <h2 id="city-name"></h2>
+            <div id="weather-icon" class="weather-icon"></div>
+            <div id="temperature" class="temperature"></div>
+            <div id="description" class="description"></div>
+            <div id="humidity" class="humidity"></div>
+           
+        </div>
+
+        
+<!-------------------------------------------------Sky animation container---------------------------------------------------------------->
+        <div id="sky-animation-container" class="sunrise-sunset">
+            <div class="sky">
+                <div class="sky__phase sky__dawn"></div>
+                <div class="sky__phase sky__noon"></div>
+                <div class="sky__phase sky__dusk"></div>
+                <div class="sky__phase sky__midnight"></div>
+                <div class="orbit">
+                    <div class="sunrise_sun"></div>
+                    <div class="moonrise_moon">
+                        <div id="sky__stars"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="sunrise" class="sunrise-sunset-text"></div>
+            <div id="sunset" class="sunrise-sunset-text"></div>
+        </div>
+<!--------------------------------------------------Wind speed container---------------------------------------------------------------------------->
+        <div class="wind-speed-container">
+            <h3 class="wind-speed-title">Wind</h3>
+            <div class="wind-speed">
+                <div class="turbine">
+                    <div class="pilot">
+                        <div class="prop-container">
+                            <div class="prop"></div>
+                            <div class="prop"></div>
+                            <div class="prop"></div>
+                        </div>
+                    </div>
+                    <div class="pole"></div>
+                </div>
+                <div class="turbine smaller-turbine">
+                    <div class="pilot">
+                        <div class="prop-container">
+                            <div class="prop"></div>
+                            <div class="prop"></div>
+                            <div class="prop"></div>
+                        </div>
+                    </div>
+                    <div class="pole"></div>
+                </div>
+            </div>
+
+            <div id="wind-speed-display"></div>
+        </div>
+<!---------------------------------------------Extended forecast------------------------------------------------------->
+        <div id="extended-forecast" class="extended-forecast">
+            <h2 class="forecast-title">5-Day Forecast</h2>
+            <div id="forecast-container" class="forecast-container"></div>
+        </div>
+
+        <div id="error-message" class="error-message hidden"></div>
+    </div>
+    <div class="background" id="page-background">
+        <div id="sun-moon-container"></div>
+    </div>
+    <script src="weatherapp.js"></script>
+</body>
+</html>
+
